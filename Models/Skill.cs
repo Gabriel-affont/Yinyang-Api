@@ -18,7 +18,7 @@ namespace Yinyang_Api.Models
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         public int OwnerId { get; set; }
         [ForeignKey("OwnerId")]
-        public User Owner { get; set; }
+        public User ? Owner { get; set; }
 
         public ICollection<Request> Requests { get; set; } = new List<Request>();
 
