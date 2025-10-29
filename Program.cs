@@ -1,3 +1,6 @@
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
+using Yinyang_Api.Data;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -7,6 +10,8 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -23,3 +28,5 @@ app.UseAuthorization();
 app.MapControllers();
 
 app.Run();
+//options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection"))
+//dotnet add package Microsoft.EntityFrameworkCore.SqlServer
