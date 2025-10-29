@@ -6,6 +6,10 @@ using Yinyang_Api.Data;
 using Yinyang_Api.Models;
 using System.Security.Cryptography;
 using System.Text;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Identity.Data;
 namespace Yinyang_Api.Controllers
 {
     [Route("api/[controller]")]
@@ -70,5 +74,60 @@ namespace Yinyang_Api.Controllers
             var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
             return BitConverter.ToString(bytes).Replace("-", "").ToLower();
         }
+
+        [HttpPost("login")]
+        public async Task<IActionResult> Login([FromBody] LoginRequest request)
+        {
+            if (string.IsNullOrEmpty(request.Email) || string.IsNullOrEmpty(request.Password))
+                return BadRequest("Email and Password required");
+            var user = await _context.Users.FirstOrDefaultAsync(u => u.Email == request.Email);
+            if (user == null)
+                return Unauthorized("Invalid email or password");
+
+            var hashedPassword = HashPassword(request.Password);
+            if (user.PasswordHash != hashedPassword)
+                return Unauthorized("Invalid email or password");
+
+            var token = GenerateJwtToken(user);
+
+            return Ok(new
+            {
+                message = "Login succesful",
+                token,
+                user = new {
+                    user.Id,
+                    user.Name,
+                    user.Email,
+                    user.Location
+                }
+            });
+
+        }
+        private string GenerateJwtToken(User user)
+        {
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("yinyang_super_secret_key_1234567890_!@#_secure"));
+
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var claims = new[]
+            {
+        new Claim(JwtRegisteredClaimNames.Sub, user.Email),
+        new Claim("id", user.Id.ToString()),
+        new Claim("name", user.Name)
+    };
+
+            var token = new JwtSecurityToken(
+                claims: claims,
+                expires: DateTime.Now.AddHours(3),
+                signingCredentials: creds
+            );
+            return new JwtSecurityTokenHandler().WriteToken(token);
+        }
+        public class LoginRequest
+        {
+            public string Email { get; set; }
+            public string Password { get; set; }
+        }
+
     }
 }
