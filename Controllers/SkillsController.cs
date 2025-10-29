@@ -16,13 +16,25 @@ namespace Yinyang_Api.Controllers
             _context = context;
         }
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Skill>>> GetSkills()
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<SkillDto>>> GetSkills()
         {
             var skills = await _context.Skills
-                  .Include(s => s.Owner)
-                  .ToListAsync();
+                .Include(s => s.Owner)
+                .Select(s => new SkillDto
+                {
+                    Id = s.Id,
+                    Title = s.Title,
+                    Category = s.Category,
+                    Location = s.Location,
+                    Status = s.Status,
+                    OwnerName = s.Owner.Name
+                })
+                .ToListAsync();
+
             return Ok(skills);
         }
+
         [HttpGet("{id}")]
         public async Task<ActionResult<Skill>> GetSkill(int id)
         {
