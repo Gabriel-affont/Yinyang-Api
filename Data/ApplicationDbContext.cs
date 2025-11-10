@@ -23,7 +23,7 @@ namespace Yinyang_Api.Data
             modelBuilder.Entity<Request>()
                 .HasOne(r => r.Requester)
                 .WithMany(u => u.RequestMade)
-                .HasForeignKey(r => r.RequestId);
+                .HasForeignKey(r => r.RequesterId);
             modelBuilder.Entity<Skill>()
                 .HasOne(s => s.Owner)
                 .WithMany(u => u.Skills)

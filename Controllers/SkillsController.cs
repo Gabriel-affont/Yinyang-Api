@@ -3,7 +3,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Yinyang_Api.Data;
 using Yinyang_Api.Models;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 
+
+using Yinyang_Api.Dto;
+using System.IdentityModel.Tokens.Jwt;
 namespace Yinyang_Api.Controllers
 {
     [Route("api/[controller]")]
@@ -15,9 +20,9 @@ namespace Yinyang_Api.Controllers
         {
             _context = context;
         }
+        
         [HttpGet]
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<SkillDto>>> GetSkills()
+        public async Task<ActionResult<IEnumerable<SkillDto>>> GetSkills(int id)
         {
             var skills = await _context.Skills
                 .Include(s => s.Owner)
@@ -47,16 +52,74 @@ namespace Yinyang_Api.Controllers
 
             return Ok(skill);
         }
+        [Authorize]
         [HttpPost]
-        public async Task<ActionResult<Skill>> CreateSkill(Skill skill)
+        public async Task<ActionResult<SkillDto>> CreateSkill(CreateSkillDto createSkillDto) 
         {
-            if (skill == null)
-                return BadRequest();
-            _context.Skills.Add(skill);
-            await _context.SaveChangesAsync();
+            if (createSkillDto == null)
+                return BadRequest("Skill data is required");
 
-            return CreatedAtAction(nameof(GetSkill), new { id = skill.Id }, skill);
+            try
+            {
+                var userIdClaim = User.FindFirst("id")?.Value
+                               ?? User.FindFirst(ClaimTypes.NameIdentifier)?.Value
+                               ?? User.FindFirst(JwtRegisteredClaimNames.Sub)?.Value;
+
+                if (string.IsNullOrEmpty(userIdClaim))
+                {
+                    return Unauthorized("User ID not found in token");
+                }
+
+                User user = null;
+                if (int.TryParse(userIdClaim, out int userId))
+                {
+                    user = await _context.Users.FindAsync(userId);
+                }
+                else
+                {
+                    user = await _context.Users.FirstOrDefaultAsync(u => u.Email == userIdClaim);
+                }
+
+                if (user == null)
+                    return Unauthorized("User not found");
+
+                var skill = new Skill
+                {
+                    Title = createSkillDto.Title,
+                    Description = createSkillDto.Description,
+                    Category = createSkillDto.Category ?? "",
+                    Location = createSkillDto.Location ?? "",
+                    Status = "available",
+                    OwnerId = user.Id,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                _context.Skills.Add(skill);
+                await _context.SaveChangesAsync();
+
+                
+                var createdSkill = await _context.Skills
+                    .Include(s => s.Owner)
+                    .FirstOrDefaultAsync(s => s.Id == skill.Id);
+
+                var skillDto = new SkillDto
+                {
+                    Id = createdSkill.Id,
+                    Title = createdSkill.Title,
+                    Category = createdSkill.Category,
+                    Location = createdSkill.Location,
+                    Status = createdSkill.Status,
+                    OwnerName = createdSkill.Owner.Name
+                };
+
+                return CreatedAtAction(nameof(GetSkill), new { id = skillDto.Id }, skillDto);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
+
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateSkill(int id, Skill updatedSkill)
         {

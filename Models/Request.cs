@@ -1,19 +1,21 @@
-﻿using System;
-using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
-namespace Yinyang_Api.Models
-{
-    public class Request
-    {
-        public int Id { get; set; }
-        public int SkillId { get; set; }
-        public int RequestId { get; set; }
-        [ForeignKey("SkillId")]
-        public Skill Skill { get; set; }
-        [ForeignKey("RequesterId")]
-        public User Requester { get; set; }
-        public string status { get; set; } = "pending"; 
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+﻿   using System.ComponentModel.DataAnnotations;
+    using System.ComponentModel.DataAnnotations.Schema;
 
+    namespace Yinyang_Api.Models
+    {
+        public class Request
+        {
+            [Key]
+            [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+            public int RequestId { get; set; }
+
+            public int SkillId { get; set; }
+            public Skill? Skill { get; set; }
+
+            public int RequesterId { get; set; }
+            public User? Requester { get; set; }
+
+            public string Status { get; set; } = "Pending";
+            public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        }
     }
-}

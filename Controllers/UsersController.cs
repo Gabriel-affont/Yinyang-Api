@@ -15,11 +15,41 @@ namespace Yinyang_Api.Controllers
     [Route("api/[controller]")]
     [ApiController]
     public class UsersController : ControllerBase
+
     {
         private readonly ApplicationDbContext _context;
-        public UsersController(ApplicationDbContext context)
+        private readonly IConfiguration _configuration;
+        public UsersController(ApplicationDbContext context, IConfiguration configuration)
         {
             _context = context;
+            _configuration = configuration;
+        }
+        private string GenerateJwtToken(User user)
+        {
+            // Use the same key from configuration
+            var jwtKey = _configuration["Jwt:Key"];
+            var issuer = _configuration["Jwt:Issuer"];
+            var audience = _configuration["Jwt:Audience"];
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey));
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
+
+            var claims = new[]
+            {
+            new Claim(JwtRegisteredClaimNames.Sub, user.Email),
+            new Claim("id", user.Id.ToString()),
+            new Claim("name", user.Name ?? "")
+        };
+
+            var token = new JwtSecurityToken(
+                issuer: issuer,
+                audience: audience,
+                claims: claims,
+                expires: DateTime.Now.AddHours(3),
+                signingCredentials: creds
+            );
+
+            return new JwtSecurityTokenHandler().WriteToken(token);
         }
         [HttpGet]
         public async Task<ActionResult<IEnumerable<User>>> GetUsers()
@@ -103,25 +133,7 @@ namespace Yinyang_Api.Controllers
             });
 
         }
-        private string GenerateJwtToken(User user)
-        {
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("yinyang_super_secret_key_1234567890_!@#_secure"));
-
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-            var claims = new[]
-            {
-        new Claim(JwtRegisteredClaimNames.Sub, user.Email),
-        new Claim("id", user.Id.ToString()),
-        new Claim("name", user.Name)
-    };
-
-            var token = new JwtSecurityToken(
-                claims: claims,
-                expires: DateTime.Now.AddHours(3),
-                signingCredentials: creds
-            );
-            return new JwtSecurityTokenHandler().WriteToken(token);
+       
         }
         public class LoginRequest
         {
@@ -130,4 +142,4 @@ namespace Yinyang_Api.Controllers
         }
 
     }
-}
+
