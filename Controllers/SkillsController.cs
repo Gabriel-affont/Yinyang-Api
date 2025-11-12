@@ -148,5 +148,17 @@ namespace Yinyang_Api.Controllers
             await _context.SaveChangesAsync();
             return NoContent();
         }
+        [HttpPut("{id}/status")]
+        public async Task<IActionResult> UpdateStatus(int id, [FromBody] string status)
+        {
+            var skill = await _context.Skills.FindAsync(id);
+            if (skill == null) return NotFound();
+
+            skill.Status = status;
+            await _context.SaveChangesAsync();
+
+            return Ok(skill);
+        }
+
     }
 }

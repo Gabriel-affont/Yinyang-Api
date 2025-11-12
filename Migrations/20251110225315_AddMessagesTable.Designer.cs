@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Yinyang_Api.Data;
 
@@ -10,43 +11,14 @@ using Yinyang_Api.Data;
 namespace Yinyang_Api.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251110225315_AddMessagesTable")]
+    partial class AddMessagesTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.10");
-
-            modelBuilder.Entity("Yinyang_Api.Models.Message", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Content")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<bool>("IsRead")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("ReceiverId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("SenderId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<DateTime>("SentAt")
-                        .HasColumnType("TEXT");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ReceiverId");
-
-                    b.HasIndex("SenderId");
-
-                    b.ToTable("Messages");
-                });
 
             modelBuilder.Entity("Yinyang_Api.Models.Request", b =>
                 {
@@ -74,37 +46,6 @@ namespace Yinyang_Api.Migrations
                     b.HasIndex("SkillId");
 
                     b.ToTable("Requests");
-                });
-
-            modelBuilder.Entity("Yinyang_Api.Models.Review", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER");
-
-                    b.Property<string>("Comment")
-                        .IsRequired()
-                        .HasColumnType("TEXT");
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("TEXT");
-
-                    b.Property<int>("Rating")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("SkillId")
-                        .HasColumnType("INTEGER");
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("INTEGER");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("SkillId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Reviews");
                 });
 
             modelBuilder.Entity("Yinyang_Api.Models.Skill", b =>
@@ -175,25 +116,6 @@ namespace Yinyang_Api.Migrations
                     b.ToTable("Users");
                 });
 
-            modelBuilder.Entity("Yinyang_Api.Models.Message", b =>
-                {
-                    b.HasOne("Yinyang_Api.Models.User", "Receiver")
-                        .WithMany()
-                        .HasForeignKey("ReceiverId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("Yinyang_Api.Models.User", "Sender")
-                        .WithMany()
-                        .HasForeignKey("SenderId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("Receiver");
-
-                    b.Navigation("Sender");
-                });
-
             modelBuilder.Entity("Yinyang_Api.Models.Request", b =>
                 {
                     b.HasOne("Yinyang_Api.Models.User", "Requester")
@@ -211,25 +133,6 @@ namespace Yinyang_Api.Migrations
                     b.Navigation("Requester");
 
                     b.Navigation("Skill");
-                });
-
-            modelBuilder.Entity("Yinyang_Api.Models.Review", b =>
-                {
-                    b.HasOne("Yinyang_Api.Models.Skill", "Skill")
-                        .WithMany()
-                        .HasForeignKey("SkillId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Yinyang_Api.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Skill");
-
-                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Yinyang_Api.Models.Skill", b =>

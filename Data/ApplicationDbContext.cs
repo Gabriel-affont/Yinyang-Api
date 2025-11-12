@@ -12,6 +12,9 @@ namespace Yinyang_Api.Data
         public DbSet<User> Users { get; set; }
         public DbSet<Skill> Skills { get; set; }
         public DbSet<Request> Requests { get; set; }
+        public DbSet<Message> Messages { get; set; }
+        public DbSet<Review> Reviews { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
@@ -28,6 +31,16 @@ namespace Yinyang_Api.Data
                 .HasOne(s => s.Owner)
                 .WithMany(u => u.Skills)
                 .HasForeignKey(s => s.OwnerId);
+            modelBuilder.Entity<Message>()
+                .HasOne(m => m.Sender)
+                .WithMany()
+                .HasForeignKey(m => m.SenderId)
+                .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<Message>()
+                .HasOne(m => m.Receiver)
+                .WithMany()
+                .HasForeignKey(m => m.ReceiverId)
+                .OnDelete(DeleteBehavior.Restrict);
         }
     }
 }
